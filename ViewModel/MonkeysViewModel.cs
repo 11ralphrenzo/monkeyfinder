@@ -16,14 +16,16 @@ namespace monkeyfinder.ViewModel
     {
         private readonly MonkeyService monkeyService;
         private readonly IConnectivity connectivity;
+        private readonly IGeolocation geolocation;
 
         public ObservableCollection<Monkey> Monkeys { get; } = new();
 
-        public MonkeysViewModel(MonkeyService monkeyService, IConnectivity connectivity)
+        public MonkeysViewModel(MonkeyService monkeyService, IConnectivity connectivity, IGeolocation geolocation)
         {
             Title = "Monkey Finder";
             this.monkeyService = monkeyService;
             this.connectivity = connectivity;
+            this.geolocation = geolocation;
             //GetMonkeysCommand.Execute();
         }
 
@@ -73,6 +75,46 @@ namespace monkeyfinder.ViewModel
                 {
                     { "Monkey", monkey }
                 });
+        }
+
+        [RelayCommand]
+        async Task GetClosestMonkeyAsync()
+        {
+            if (IsBusy || !Monkeys.Any())
+                return;
+
+            try
+            {
+                var location = await geolocation.GetLastKnownLocationAsync();
+                if (location == null)
+                {
+                    location = await geolocation.GetLocationAsync(new GeolocationRequest
+                                { 
+                                    DesiredAccuracy = GeolocationAccuracy.Medium,
+                                    Timeout = TimeSpan.FromSeconds(30),
+                                });
+
+                }
+
+                if (location is null)
+                    return;
+
+                var first = Monkeys.OrderBy(m => location.CalculateDistance(m.Latitude, m.Longitude, DistanceUnits.Miles)).FirstOrDefault();
+
+                if (first is null)
+                    return;
+
+                await Shell.Current.DisplayAlert("Closest Monkey", 
+                    $"{first.Name} in {first.Location}", "OK");
+            }
+            catch (Exception ex)
+            {
+#if DEBUG
+                Debug.WriteLine(ex);
+#endif
+                await Shell.Current.DisplayAlert("Error!",
+                    $"Unable to get closest monkeys: {ex.Message}", "OK");
+            }
         }
     }
 }
