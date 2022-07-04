@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using monkeyfinder.Models;
 using monkeyfinder.Pages;
 using monkeyfinder.Services;
@@ -19,6 +20,9 @@ namespace monkeyfinder.ViewModel
         private readonly IGeolocation geolocation;
 
         public ObservableCollection<Monkey> Monkeys { get; } = new();
+
+        [ObservableProperty]
+        bool isRefreshing;
 
         public MonkeysViewModel(MonkeyService monkeyService, IConnectivity connectivity, IGeolocation geolocation)
         {
@@ -63,6 +67,7 @@ namespace monkeyfinder.ViewModel
             finally
             { 
                 IsBusy = false;
+                IsRefreshing = false;
             }
         }
 
