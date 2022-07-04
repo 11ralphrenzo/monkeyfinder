@@ -53,5 +53,6 @@ namespace monkeyfinder.ViewModel
                 IsBusy = false;
             }
         }
+        }
     }
 }
