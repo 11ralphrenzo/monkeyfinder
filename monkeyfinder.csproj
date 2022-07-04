@@ -52,4 +52,10 @@
 	  <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0-preview4" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <MauiXaml Update="Pages\DetailsPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
+
 </Project>

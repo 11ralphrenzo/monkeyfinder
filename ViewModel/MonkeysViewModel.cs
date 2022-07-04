@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using monkeyfinder.Models;
+using monkeyfinder.Pages;
 using monkeyfinder.Services;
 using System;
 using System.Collections.Generic;
@@ -14,13 +15,15 @@ namespace monkeyfinder.ViewModel
     public partial class MonkeysViewModel : BaseViewModel
     {
         private readonly MonkeyService monkeyService;
+        private readonly IConnectivity connectivity;
 
         public ObservableCollection<Monkey> Monkeys { get; } = new();
 
-        public MonkeysViewModel(MonkeyService monkeyService)
+        public MonkeysViewModel(MonkeyService monkeyService, IConnectivity connectivity)
         {
             Title = "Monkey Finder";
             this.monkeyService = monkeyService;
+            this.connectivity = connectivity;
             //GetMonkeysCommand.Execute();
         }
 
@@ -29,6 +32,13 @@ namespace monkeyfinder.ViewModel
         { 
             if(IsBusy)
                 return;
+
+            if (connectivity.NetworkAccess != NetworkAccess.Internet)
+            {
+                await Shell.Current.DisplayAlert("Internet Error!", $"Check your internet and try again!", "OK");
+                return;
+            }
+
             try
             {
                 IsBusy = true;
@@ -53,6 +63,16 @@ namespace monkeyfinder.ViewModel
                 IsBusy = false;
             }
         }
+
+        [RelayCommand]
+        async Task GoToDetailsAsync(Monkey monkey)
+        {
+            if (monkey == null)
+                return;
+            await Shell.Current.GoToAsync(nameof(DetailsPage), true, new Dictionary<string, object>
+                {
+                    { "Monkey", monkey }
+                });
         }
     }
 }
